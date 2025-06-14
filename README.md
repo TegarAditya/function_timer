@@ -4,17 +4,38 @@ A simple procedural attribute macro for Rust that times the execution of a funct
 This macro is designed to be a convenient utility for performance monitoring during development. It correctly handles both synchronous and async functions.
 
 ## Features
-- Easy to apply with a #[time] attribute.
+- Easy to apply with a `#[time]` attribute.
 - Works seamlessly with both async and standard functions.
 - Logs the function name and execution time in milliseconds.
 - Uses the tracing crate for logging, integrating well with existing logging infrastructure.
 
-## Prerequisites
-Your main application must use the tracing crate for the log output to be visible.
+
+## How It Works & Prerequisites
+
+The `tracing` ecosystem is designed with a two-part architecture:
+
+1.  **Instrumentation (`tracing`)**: Code that generates log events. Our `#[time]` macro does this by calling `tracing::info!`.
+2.  **Subscription (`tracing-subscriber`)**: A listener that processes these events and decides what to do with them (e.g., print them to the console).
+
+This `function_timer` crate only handles the first part (instrumentation). For the log messages to be visible, **your main application must handle the second part by setting up a subscriber.**
+
+If you don't initialize a subscriber in your `main.rs`, the logs from `#[time]` will be generated but then immediately discarded, and you will see no output.
+
+A typical subscriber setup in your `main.rs` looks like this:
+
+```rust
+// in main.rs
+fn main() {
+    // This line sets up a subscriber that prints logs to the console.
+    tracing_subscriber::fmt().init();
+
+    // ... rest of your application ...
+}
+```
 
 ## Usage
-#### 1. Add the Crate as a Local Dependency
-In the Cargo.toml of your main application, add this crate using a path dependency:
+#### 1. Add the Crate as a Dependency
+In the Cargo.toml of your main application, add this crate using a 'git' dependency:
 ```toml
 [dependencies]
 # ... other dependencies
