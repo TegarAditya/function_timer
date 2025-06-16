@@ -1,5 +1,5 @@
 use function_timer::time;
-use std::env;
+use temp_env;
 
 #[time]
 fn timed_sync_function() -> i32 {
@@ -23,14 +23,9 @@ async fn test_async_function_returns_correct_value() {
 
 #[tokio::test]
 async fn test_timer_can_be_disabled() {
-    unsafe {
-        env::set_var("ENABLE_FUNCTION_TIMER", "false");
-    }
-
-    assert_eq!(timed_sync_function(), 42);
-    assert_eq!(timed_async_function().await, "hello");
-
-    unsafe {
-        env::remove_var("ENABLE_FUNCTION_TIMER");
-    }
+    temp_env::with_var("ENABLE_FUNCTION_TIMER", Some("false"), || async {
+        assert_eq!(timed_sync_function(), 42);
+        assert_eq!(timed_async_function().await, "hello");
+    })
+    .await;
 }
